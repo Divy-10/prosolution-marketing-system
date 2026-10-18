@@ -1,0 +1,75 @@
+@import "tailwindcss";
+
+/*
+ * ProSolution Outreach design tokens.
+ * Colour carries meaning: violet = a person decides or acts; blue = the system or AI did something.
+ * The logo gradient is reserved for the logo itself and the primary action.
+ */
+@theme {
+  --font-sans: "Figtree", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Saira", "Figtree", ui-sans-serif, sans-serif;
+
+  --color-ink: #161433;
+  --color-ink-soft: #4a4766;
+  --color-ink-faint: #75728f;
+  --color-paper: #f7f7fb;
+  --color-surface: #ffffff;
+  --color-line: #e3e2ee;
+  --color-line-strong: #cfcde0;
+
+  --color-human: #6d28d9;      /* violet: people decide */
+  --color-human-soft: #f1ebfd;
+  --color-human-deep: #5b21b6;
+  --color-system: #1e56c8;     /* blue: system and AI */
+  --color-system-soft: #e8f0fd;
+
+  --color-ok: #15803d;
+  --color-ok-soft: #e7f6ec;
+  --color-warn: #a35a00;
+  --color-warn-soft: #fdf3e2;
+  --color-danger: #b42318;
+  --color-danger-soft: #fdecea;
+
+  --radius-control: 8px;
+  --radius-panel: 12px;
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    @apply bg-paper font-sans text-ink antialiased;
+    font-size: 15px;
+    line-height: 1.5;
+    font-feature-settings: "tnum" 0;
+  }
+  h1, h2, h3 {
+    @apply font-display text-ink;
+    letter-spacing: -0.005em;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-human);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+  ::selection {
+    background: var(--color-human-soft);
+  }
+}
+
+@layer utilities {
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+  .brand-gradient {
+    background-image: linear-gradient(100deg, #7c3aed 0%, #4f46e5 45%, #1e56c8 100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

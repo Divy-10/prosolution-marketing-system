@@ -1,0 +1,49 @@
+# Secrets — never commit
+.env
+.env.*
+!.env.example
+
+# Dependencies & builds
+node_modules/
+dist/
+build/
+coverage/
+*.tsbuildinfo
+
+# Generated Prisma client
+packages/db/src/generated/
+
+# Logs & OS files
+*.log
+npm-debug.log*
+pnpm-debug.log*
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editors
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# Local uploads / backups
+uploads/
+backups/
+*.dump
+
+# Local database files
+*.sqlite
+*.sqlite3
+*.db
+pgdata/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.swp
+.cache/
+
+# Local copies/archives of the project (not source)
+prosolution-phase1/
+*.zip

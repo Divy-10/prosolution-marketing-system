@@ -1,0 +1,29 @@
+{
+  "name": "prosolution-outreach",
+  "private": true,
+  "description": "ProSolution Infotech internal AI outreach & lead management platform",
+  "packageManager": "pnpm@10.28.0",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "pnpm --parallel --filter @prosolution/api --filter @prosolution/web dev",
+    "dev:api": "pnpm --filter @prosolution/api dev",
+    "dev:web": "pnpm --filter @prosolution/web dev",
+    "build": "pnpm --filter @prosolution/db generate && pnpm --filter @prosolution/api --filter @prosolution/web build && node scripts/check-bundle-secrets.mjs",
+    "typecheck": "pnpm --filter @prosolution/db generate && pnpm -r typecheck",
+    "test": "pnpm --filter @prosolution/db generate && pnpm -r test",
+    "check": "pnpm typecheck && pnpm test && pnpm build",
+    "services:up": "docker compose --env-file .env -f infra/docker-compose.dev.yml up -d",
+    "services:down": "docker compose --env-file .env -f infra/docker-compose.dev.yml down",
+    "services:logs": "docker compose --env-file .env -f infra/docker-compose.dev.yml logs -f",
+    "db:generate": "pnpm --filter @prosolution/db generate",
+    "db:migrate": "pnpm --filter @prosolution/db migrate:deploy",
+    "db:migrate:dev": "pnpm --filter @prosolution/db migrate:dev",
+    "db:migrate:test": "pnpm --filter @prosolution/db migrate:test",
+    "db:studio": "pnpm --filter @prosolution/db studio",
+    "seed:admin": "pnpm --filter @prosolution/db seed:admin",
+    "secrets:generate": "node scripts/generate-secrets.mjs",
+    "db:check-drift": "pnpm --filter @prosolution/db check-drift"
+  }
+}

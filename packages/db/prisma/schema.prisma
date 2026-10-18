@@ -1,0 +1,90 @@
+// ProSolution Outreach — database schema
+// Phase 1: users, sessions and the audit log.
+// Campaigns, leads, messages etc. are added in Phase 2 (see docs/ARCHITECTURE.md §4).
+
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "esm"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  ADMIN
+  SALES_MANAGER
+  SALES_USER
+  VIEWER
+}
+
+model User {
+  id                 String    @id @default(cuid())
+  /// Always stored lower-case (normalised in code).
+  email              String    @unique
+  name               String
+  /// Argon2id hash. The plain password is never stored or logged.
+  passwordHash       String
+  role               Role      @default(VIEWER)
+  isActive           Boolean   @default(true)
+  /// Set for new users and after an admin reset; forces a password change at next sign-in.
+  mustChangePassword Boolean   @default(true)
+  failedLoginCount   Int       @default(0)
+  lockedUntil        DateTime?
+  lastLoginAt        DateTime?
+  passwordChangedAt  DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  sessions  Session[]
+  auditLogs AuditLog[] @relation("AuditActor")
+
+  @@index([role, isActive])
+}
+
+model Session {
+  id         String   @id @default(cuid())
+  /// HMAC-SHA256 of the random session token. The token itself only exists in the user's cookie.
+  tokenHash  String   @unique
+  /// Random token the browser must echo in the X-CSRF-Token header for state-changing requests.
+  csrfToken  String
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ip         String?
+  userAgent  String?
+  lastSeenAt DateTime @default(now())
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+/// Append-only record of important actions. There is no API to edit or delete rows.
+model AuditLog {
+  id             String   @id @default(cuid())
+  /// null = action performed by the system (scheduler, worker, CLI).
+  actorId        String?
+  actor          User?    @relation("AuditActor", fields: [actorId], references: [id], onDelete: SetNull)
+  action         String
+  entityType     String
+  entityId       String?
+  /// Links to leads/campaigns arrive in Phase 2; stored as plain ids so audit rows survive deletions.
+  leadId         String?
+  campaignId     String?
+  previousStatus String?
+  newStatus      String?
+  meta           Json?
+  ip             String?
+  userAgent      String?
+  requestId      String?
+  createdAt      DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([actorId, createdAt])
+  @@index([entityType, entityId])
+  @@index([leadId])
+  @@index([campaignId])
+  @@index([action])
+}
