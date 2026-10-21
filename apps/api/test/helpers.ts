@@ -74,3 +74,50 @@ export async function signInAs(app: Express, role: Role) {
   const user = await createUser({ role });
   return { user, ...(await signIn(app, user.email)) };
 }
+
+// ── Phase 2 helpers ─────────────────────────────────────────────────────────
+import { seedConfig } from "@prosolution/db/seed";
+
+/** Loads the real starting configuration (services, industries, Surat areas). */
+export async function seedConfiguration() {
+  return seedConfig(testDb());
+}
+
+export async function areaId(name: string): Promise<string> {
+  const area = await testDb().area.findFirstOrThrow({ where: { name } });
+  return area.id;
+}
+
+export async function industryId(name: string): Promise<string> {
+  const industry = await testDb().industry.findFirstOrThrow({ where: { name } });
+  return industry.id;
+}
+
+/** Inserts a lead row directly (bypassing the API) for setting up test scenarios. */
+export async function insertLead(data: {
+  businessName: string;
+  createdAt?: Date;
+  contactStatus?: "NOT_CONTACTED" | "CONTACTED";
+  reviewStatus?: "PENDING" | "APPROVED" | "REJECTED";
+  doNotContact?: boolean;
+  retentionHoldUntil?: Date | null;
+  assignedToId?: string | null;
+  areaId?: string | null;
+}) {
+  return testDb().lead.create({
+    data: {
+      businessName: data.businessName,
+      nameKey: data.businessName.toLowerCase(),
+      source: "MANUAL_RESEARCH",
+      ...(data.createdAt ? { createdAt: data.createdAt } : {}),
+      contactStatus: data.contactStatus ?? "NOT_CONTACTED",
+      reviewStatus: data.reviewStatus ?? "PENDING",
+      doNotContact: data.doNotContact ?? false,
+      retentionHoldUntil: data.retentionHoldUntil ?? null,
+      assignedToId: data.assignedToId ?? null,
+      areaId: data.areaId ?? null,
+    },
+  });
+}
+
+export const daysAgo = (n: number) => new Date(Date.now() - n * 86_400_000);

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { AUDIT_ACTIONS, ROLE_LABELS, describeAuditAction, type AuditLogDto, type Paginated } from "@prosolution/shared";
 import { api, qs } from "../lib/api.ts";
-import { formatDateTime, formatRelative } from "../lib/format.ts";
+import { formatDateTime, formatRelative, statusWord } from "../lib/format.ts";
 import { Badge, Input, PageHeader, Panel, Select, Skeleton } from "../components/ui/primitives.tsx";
 import { EmptyState, ErrorState, Pagination } from "../components/ui/states.tsx";
 
@@ -20,8 +20,7 @@ function toIsoEnd(date: string) {
   return date ? new Date(`${date}T23:59:59.999`).toISOString() : undefined;
 }
 
-const STATUS_LABELS: Record<string, string> = { ...ROLE_LABELS, ACTIVE: "Active", INACTIVE: "Inactive" };
-const statusLabel = (v: string) => STATUS_LABELS[v] ?? v;
+const statusLabel = (v: string) => (ROLE_LABELS as Record<string, string>)[v] ?? statusWord(v);
 
 function Who({ row }: { row: AuditLogDto }) {
   if (row.actor) {

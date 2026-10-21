@@ -29,16 +29,19 @@ export const ROLE_DESCRIPTIONS: Record<Role, string> = {
 export const PERMISSIONS = {
   "users:manage": ["ADMIN"],
   "audit:read": ["ADMIN"],
+  "settings:read": ["ADMIN", "SALES_MANAGER", "SALES_USER", "VIEWER"],
   "settings:manage": ["ADMIN"],
   "integrations:manage": ["ADMIN"],
   "prompts:manage": ["ADMIN"],
   "campaigns:read": ["ADMIN", "SALES_MANAGER", "SALES_USER", "VIEWER"],
   "campaigns:manage": ["ADMIN", "SALES_MANAGER"],
-  "knowledge:manage": ["ADMIN", "SALES_MANAGER"],
+  // Services, industries and areas: admins only (Phase 2 decision).
+  "knowledge:manage": ["ADMIN"],
   "leads:read": ["ADMIN", "SALES_MANAGER", "SALES_USER", "VIEWER"],
   "leads:manage": ["ADMIN", "SALES_MANAGER"],
   "leads:work_assigned": ["ADMIN", "SALES_MANAGER", "SALES_USER"],
   "approvals:decide": ["ADMIN", "SALES_MANAGER"],
+  "retention:manage": ["ADMIN"],
   "analytics:read": ["ADMIN", "SALES_MANAGER", "SALES_USER", "VIEWER"],
 } as const satisfies Record<string, readonly Role[]>;
 

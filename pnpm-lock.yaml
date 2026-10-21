@@ -62,6 +62,9 @@ importers:
       '@types/node':
         specifier: 24.19.2
         version: 24.19.2
+      '@types/pg':
+        specifier: 8.23.1
+        version: 8.23.1
       '@types/supertest':
         specifier: 6.0.3
         version: 6.0.3

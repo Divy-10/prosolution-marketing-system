@@ -16,6 +16,14 @@ import { SessionService } from "./modules/auth/session.service.ts";
 import { healthRoutes } from "./modules/health/health.routes.ts";
 import { UsersService } from "./modules/users/users.service.ts";
 import { usersRoutes } from "./modules/users/users.routes.ts";
+import { SettingsService } from "./modules/settings/settings.service.ts";
+import { settingsRoutes } from "./modules/settings/settings.routes.ts";
+import { IndustriesService, LocationsService, ServicesService } from "./modules/catalog/catalog.service.ts";
+import { catalogRoutes } from "./modules/catalog/catalog.routes.ts";
+import { LeadsService } from "./modules/leads/leads.service.ts";
+import { leadsRoutes } from "./modules/leads/leads.routes.ts";
+import { RetentionService } from "./modules/retention/retention.service.ts";
+import { retentionRoutes } from "./modules/retention/retention.routes.ts";
 
 export interface AppDeps {
   config: AppConfig;
@@ -39,6 +47,9 @@ export function createApp({ config, db, logger }: AppDeps): App {
   const sessions = new SessionService(db, config);
   const auth = new AuthService(db, config, sessions);
   const users = new UsersService(db);
+  const settings = new SettingsService(db);
+  const leads = new LeadsService(db);
+  const retention = new RetentionService(db);
 
   app.use(
     pinoHttp({
@@ -67,6 +78,10 @@ export function createApp({ config, db, logger }: AppDeps): App {
   api.use("/auth", authRoutes(config, auth));
   api.use("/users", usersRoutes(users));
   api.use("/audit", auditRoutes(db));
+  api.use("/settings", settingsRoutes(settings));
+  api.use("/", catalogRoutes(new ServicesService(db), new IndustriesService(db), new LocationsService(db)));
+  api.use("/leads", leadsRoutes(leads));
+  api.use("/retention", retentionRoutes(retention));
   api.use(notFoundHandler);
 
   app.use("/api/v1", api);

@@ -10,8 +10,8 @@ type Actor = "person" | "system";
 /** The outreach pipeline from the architecture. Who acts at each step is encoded in colour and text. */
 const PIPELINE: { label: string; actor: Actor; phase: number; note: string }[] = [
   { label: "Campaign", actor: "person", phase: 3, note: "You choose industry, areas and services" },
-  { label: "Import leads", actor: "person", phase: 6, note: "CSV or manual entry" },
-  { label: "Duplicate check", actor: "system", phase: 3, note: "Handle, website, phone, email" },
+  { label: "Add leads", actor: "person", phase: 2, note: "Manual entry now; CSV import in Phase 6" },
+  { label: "Duplicate check", actor: "system", phase: 2, note: "Handle, website, phone, email" },
   { label: "Public research", actor: "system", phase: 6, note: "Own website and public profile only" },
   { label: "AI draft", actor: "system", phase: 5, note: "Claude, grounded in collected facts" },
   { label: "Quality check", actor: "system", phase: 5, note: "Rules plus a second Claude review" },
@@ -41,7 +41,7 @@ function PipelineTrack() {
         </div>
       </div>
       <p className="px-5 text-[14px] text-ink-soft">
-        Phase 1 sets up sign-in, roles and the audit trail every later step writes to. Each step lights up as its phase ships.
+        Phases 1–2 set up sign-in, roles, the audit trail, your service profile and lead review. Each step lights up as its phase ships.
       </p>
       <ol className="mt-4 grid grid-cols-1 border-t border-line sm:grid-cols-2 lg:grid-cols-5">
         {PIPELINE.map((step, i) => (
@@ -98,7 +98,7 @@ export function OverviewPage() {
           {greeting()}, {user.name.split(" ")[0]}
         </h1>
         <p className="mt-1 text-ink-soft">
-          Signed in as {ROLE_LABELS[user.role].toLowerCase()}. Campaigns and leads arrive in Phase 3.
+          Signed in as {ROLE_LABELS[user.role].toLowerCase()}. Leads are ready; campaigns arrive in Phase 3.
         </p>
       </div>
 
@@ -132,6 +132,20 @@ export function OverviewPage() {
         <Panel className="p-5">
           <h2 className="text-lg font-semibold">What you can do now</h2>
           <ul className="mt-3 space-y-3 text-[14px]">
+            <li>
+              <Link to="/leads" className="font-medium text-human hover:underline">
+                {can(user.role, "leads:manage") ? "Add and review leads" : "See leads"}
+              </Link>
+              <p className="text-ink-soft">Candidates found from public information wait for review before anyone contacts them.</p>
+            </li>
+            {can(user.role, "knowledge:manage") && (
+              <li>
+                <Link to="/services" className="font-medium text-human hover:underline">
+                  Check services and target market
+                </Link>
+                <p className="text-ink-soft">The 11 services, 16 industries and Surat areas the rest of the app builds on.</p>
+              </li>
+            )}
             {can(user.role, "users:manage") && (
               <li>
                 <Link to="/users" className="font-medium text-human hover:underline">

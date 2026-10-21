@@ -1,4 +1,4 @@
-import type { ApiErrorBody, ErrorCode } from "@prosolution/shared";
+import type { ApiErrorBody, DuplicateCheckDto, ErrorCode } from "@prosolution/shared";
 
 /** An error returned by the API, with per-field messages when validation failed. */
 export class ApiError extends Error {
@@ -8,6 +8,10 @@ export class ApiError extends Error {
     message: string,
     public readonly details: Record<string, string[]> = {},
     public readonly requestId?: string,
+    /** Duplicate matches attached to DUPLICATE_LEAD / SHARED_IDENTIFIER / POSSIBLE_DUPLICATE errors. */
+    public readonly duplicates?: DuplicateCheckDto,
+    /** Leads that were no longer eligible in a retention action. */
+    public readonly ineligibleLeadIds?: string[],
   ) {
     super(message);
     this.name = "ApiError";
@@ -64,6 +68,8 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
       err?.message ?? `The server returned an unexpected response (${res.status}).`,
       err?.details,
       err?.requestId,
+      err?.duplicates,
+      err?.ineligibleLeadIds,
     );
     const isLogin = path === "/auth/login";
     if (!isLogin && (apiError.code === "UNAUTHENTICATED" || apiError.code === "PASSWORD_CHANGE_REQUIRED")) {
@@ -78,6 +84,7 @@ export const api = {
   get: <T>(path: string) => request<T>("GET", path),
   post: <T>(path: string, body?: unknown) => request<T>("POST", path, body ?? {}),
   patch: <T>(path: string, body: unknown) => request<T>("PATCH", path, body),
+  put: <T>(path: string, body: unknown) => request<T>("PUT", path, body),
 };
 
 /** Builds a query string, skipping empty values. */

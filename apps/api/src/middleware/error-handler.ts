@@ -38,6 +38,7 @@ export function errorHandler(logger: Logger): ErrorRequestHandler {
         code: appError.code,
         message: appError.message,
         ...(appError.details ? { details: appError.details } : {}),
+        ...(appError.extra ?? {}),
         ...(requestId ? { requestId } : {}),
       },
     };

@@ -30,6 +30,8 @@ export function auditContext(req: Request) {
   };
 }
 
+export type ActorMeta = ReturnType<typeof auditContext>;
+
 export async function recordAudit(db: DbOrTx, entry: AuditEntry): Promise<void> {
   await db.auditLog.create({
     data: {

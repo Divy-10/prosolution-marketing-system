@@ -1334,3 +1334,20 @@ Phase 2 seeds the knowledge base with your nine service groups (Website Design &
 - The Phase 1 schema contains only `User`, `Session` and `AuditLog`. The rest of §4.2 arrives in Phase 2.
 - `User.email` is stored lower-case in a regular unique column instead of `citext`, so no Postgres extension is needed.
 - Rate limiting uses an in-memory store for now (single API process). It moves to Redis when the API runs as several processes.
+
+**21 Oct 2026 — Phase 2 decisions (approved):**
+
+1. A merged list of 16 distinct industries, editable by admins.
+2. 11 services, including Model & product shoot coordination. No service prices.
+3. No hashed do-not-reimport list in Phase 2.
+4. Retention eligibility defaults to 180 days and is configurable by admins.
+5. Leads are never deleted automatically. Deletion needs admin review, a typed confirmation and audit logging.
+6. Do-not-contact records are preserved and excluded from retention deletion.
+7. Exact duplicates are blocked. Shared identifiers (e.g. branches sharing a phone number) need an admin's review. Leads are never merged automatically.
+
+**Phase 2 implementation notes (differences from §4.2):**
+- `Lead` uses separate `reviewStatus` (PENDING / APPROVED / REJECTED) and `contactStatus` (NOT_CONTACTED / CONTACTED) fields instead of the single 14-value `LeadStatus` from §4.2. Outreach statuses (researching, message ready, sent, replied…) will be added alongside them in Phases 5–8.
+- `LeadIdentifier` is **not** unique on (type, value); shared identifiers are flagged `isShared` after an admin approves them. Concurrent creates are serialised with Postgres advisory locks.
+- `Location` from §4.2 became `City` + `Area`.
+- Prices are not stored anywhere (Service Profile §5).
+- Lead history reuses the append-only `AuditLog` (filtered by `leadId`) instead of a separate timeline table.

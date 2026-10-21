@@ -1,4 +1,12 @@
-import { forwardRef, useId, type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes } from "react";
+import {
+  forwardRef,
+  useId,
+  type ButtonHTMLAttributes,
+  type InputHTMLAttributes,
+  type ReactNode,
+  type SelectHTMLAttributes,
+  type TextareaHTMLAttributes,
+} from "react";
 
 export function cx(...parts: (string | false | null | undefined)[]): string {
   return parts.filter(Boolean).join(" ");
@@ -118,6 +126,57 @@ export const Select = forwardRef<HTMLSelectElement, SelectHTMLAttributes<HTMLSel
     </select>
   );
 });
+
+export const Textarea = forwardRef<HTMLTextAreaElement, TextareaHTMLAttributes<HTMLTextAreaElement>>(function Textarea(
+  { className, rows = 3, ...rest },
+  ref,
+) {
+  return (
+    <textarea
+      ref={ref}
+      rows={rows}
+      className={cx(
+        controlBase,
+        widthFor(className),
+        "py-2 leading-relaxed",
+        rest["aria-invalid"] ? "border-danger focus:ring-danger/20" : "border-line-strong focus:border-human",
+        className,
+      )}
+      {...rest}
+    />
+  );
+});
+
+/** Checkbox with its label; the whole row is clickable. */
+export function Checkbox({
+  checked,
+  onChange,
+  label,
+  description,
+  disabled,
+}: {
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+  label: ReactNode;
+  description?: ReactNode;
+  disabled?: boolean;
+}) {
+  return (
+    <label className={cx("flex cursor-pointer items-start gap-2.5 text-[14px]", disabled && "cursor-not-allowed opacity-60")}>
+      <input
+        type="checkbox"
+        className="mt-1 size-4 shrink-0 accent-human"
+        checked={checked}
+        disabled={disabled}
+        onChange={(e) => onChange(e.target.checked)}
+      />
+      <span>
+        <span className="block text-ink">{label}</span>
+        {description && <span className="block text-[13px] text-ink-soft">{description}</span>}
+      </span>
+    </label>
+  );
+}
 
 // ── Status ──────────────────────────────────────────────────────────────────
 export type Tone = "neutral" | "human" | "system" | "ok" | "warn" | "danger";

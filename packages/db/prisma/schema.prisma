@@ -1,6 +1,8 @@
 // ProSolution Outreach — database schema
 // Phase 1: users, sessions and the audit log.
-// Campaigns, leads, messages etc. are added in Phase 2 (see docs/ARCHITECTURE.md §4).
+// Phase 2: company profile, services, target market (industries, cities, areas),
+//          lead candidates with duplicate identifiers, and retention settings.
+// Campaigns, messages etc. follow in later phases (see docs/ARCHITECTURE.md §4).
 
 generator client {
   provider     = "prisma-client"
@@ -39,6 +41,13 @@ model User {
 
   sessions  Session[]
   auditLogs AuditLog[] @relation("AuditActor")
+
+  leadsAssigned       Lead[]           @relation("LeadAssignedTo")
+  leadsCreated        Lead[]           @relation("LeadCreatedBy")
+  leadsReviewed       Lead[]           @relation("LeadReviewedBy")
+  leadsVerified       Lead[]           @relation("LeadVerifiedBy")
+  companyProfileEdits CompanyProfile[]
+  settingsEdits       SystemSettings[]
 
   @@index([role, isActive])
 }
@@ -87,4 +96,215 @@ model AuditLog {
   @@index([leadId])
   @@index([campaignId])
   @@index([action])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Phase 2 — service profile & lead foundation
+// ─────────────────────────────────────────────────────────────────────────────
+
+enum LeadSource {
+  MANUAL_RESEARCH
+  REFERRAL
+  INBOUND_ENQUIRY
+  EXISTING_CONTACT
+  OTHER
+}
+
+enum LeadReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum LeadContactStatus {
+  NOT_CONTACTED
+  CONTACTED
+}
+
+enum LeadIdentifierType {
+  WEBSITE_DOMAIN
+  PHONE
+  EMAIL
+  INSTAGRAM
+}
+
+/// Single row (id = "default"): who ProSolution is. No prices are stored anywhere.
+model CompanyProfile {
+  id                    String   @id @default("default")
+  companyName           String
+  tagline               String?
+  description           String?
+  city                  String
+  publicEmail           String?
+  publicPhone           String?
+  instagramHandle       String?
+  website               String?
+  /// Free-text qualification preferences, used by the AI from Phase 5.
+  qualificationNotes    String?
+  /// Only qualify leads that have a website or Instagram profile.
+  requireOnlinePresence Boolean  @default(false)
+  updatedById           String?
+  updatedBy             User?    @relation(fields: [updatedById], references: [id], onDelete: SetNull)
+  updatedAt             DateTime @updatedAt
+}
+
+/// Single row (id = "default").
+model SystemSettings {
+  id                String   @id @default("default")
+  /// Uncontacted leads older than this become eligible for admin retention review. Never deleted automatically.
+  leadRetentionDays Int      @default(180)
+  updatedById       String?
+  updatedBy         User?    @relation(fields: [updatedById], references: [id], onDelete: SetNull)
+  updatedAt         DateTime @updatedAt
+}
+
+model Service {
+  id            String            @id @default(cuid())
+  name          String
+  /// Normalised name; unique so "Social Media Management" can't be added twice.
+  nameKey       String            @unique
+  category      String
+  description   String
+  idealCustomer String?
+  keyBenefits   String[]
+  exampleOffer  String?
+  cta           String?
+  restrictions  String?
+  portfolioUrl  String?
+  isActive      Boolean           @default(true)
+  sortOrder     Int               @default(0)
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  industries    IndustryService[]
+}
+
+model Industry {
+  id          String            @id @default(cuid())
+  name        String
+  nameKey     String            @unique
+  description String?
+  /// Industry-specific guidance for the AI (Phase 5).
+  aiGuidance  String?
+  isActive    Boolean           @default(true)
+  sortOrder   Int               @default(0)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  services    IndustryService[]
+  leads       Lead[]
+}
+
+/// Suggested services for an industry. Suggestions, not rules.
+model IndustryService {
+  industryId String
+  serviceId  String
+  industry   Industry @relation(fields: [industryId], references: [id], onDelete: Cascade)
+  service    Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@id([industryId, serviceId])
+  @@index([serviceId])
+}
+
+model City {
+  id        String   @id @default(cuid())
+  name      String
+  nameKey   String   @unique
+  state     String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  areas     Area[]
+  leads     Lead[]
+}
+
+model Area {
+  id        String   @id @default(cuid())
+  cityId    String
+  city      City     @relation(fields: [cityId], references: [id], onDelete: Restrict)
+  name      String
+  nameKey   String
+  isActive  Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  leads     Lead[]
+
+  @@unique([cityId, nameKey])
+}
+
+model Lead {
+  id              String     @id @default(cuid())
+  /// Human-friendly number shown as LD-000123.
+  displayId       Int        @unique @default(autoincrement())
+  businessName    String
+  /// Normalised business name used for "possible duplicate" checks.
+  nameKey         String
+  industryId      String?
+  industry        Industry?  @relation(fields: [industryId], references: [id], onDelete: Restrict)
+  cityId          String?
+  city            City?      @relation(fields: [cityId], references: [id], onDelete: Restrict)
+  areaId          String?
+  area            Area?      @relation(fields: [areaId], references: [id], onDelete: Restrict)
+  addressLine     String?
+  website         String?
+  instagramHandle String?
+  publicPhone     String?
+  publicEmail     String?
+  source          LeadSource
+  /// Where the public information was found.
+  sourceUrl       String?
+  sourceNote      String?
+  discoveredAt    DateTime   @default(now())
+  notes           String?
+
+  reviewStatus LeadReviewStatus @default(PENDING)
+  reviewNote   String?
+  reviewedAt   DateTime?
+  reviewedById String?
+  reviewedBy   User?            @relation("LeadReviewedBy", fields: [reviewedById], references: [id], onDelete: SetNull)
+
+  contactStatus LeadContactStatus @default(NOT_CONTACTED)
+  contactedAt   DateTime?
+  contactNote   String?
+
+  doNotContact       Boolean   @default(false)
+  doNotContactReason String?
+  doNotContactAt     DateTime?
+
+  /// Set only when a person confirms the details; cleared when contact details change.
+  detailsVerifiedAt   DateTime?
+  detailsVerifiedById String?
+  detailsVerifiedBy   User?     @relation("LeadVerifiedBy", fields: [detailsVerifiedById], references: [id], onDelete: SetNull)
+
+  assignedToId String?
+  assignedTo   User?   @relation("LeadAssignedTo", fields: [assignedToId], references: [id], onDelete: SetNull)
+  createdById  String?
+  createdBy    User?   @relation("LeadCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+
+  /// An admin chose to keep this lead at retention review; not eligible again until this date.
+  retentionHoldUntil DateTime?
+
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  identifiers LeadIdentifier[]
+
+  @@index([reviewStatus, contactStatus])
+  @@index([assignedToId])
+  @@index([industryId])
+  @@index([areaId])
+  @@index([nameKey])
+  @@index([createdAt])
+}
+
+/// Normalised contact details used for duplicate detection. Not unique on purpose:
+/// separate branches may share a phone number once an admin approves it (isShared).
+model LeadIdentifier {
+  id       String             @id @default(cuid())
+  leadId   String
+  lead     Lead               @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  type     LeadIdentifierType
+  value    String
+  isShared Boolean            @default(false)
+
+  @@unique([leadId, type])
+  @@index([type, value])
 }

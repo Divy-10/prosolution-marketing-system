@@ -1,4 +1,7 @@
-import type { ErrorCode } from "@prosolution/shared";
+import type { ApiErrorBody, ErrorCode } from "@prosolution/shared";
+
+/** Extra, safe-to-show fields some errors carry (e.g. duplicate matches). */
+export type ErrorExtra = Pick<ApiErrorBody["error"], "duplicates" | "ineligibleLeadIds">;
 
 /** An error that is safe to show to the user. Anything else becomes a generic 500. */
 export class AppError extends Error {
@@ -7,6 +10,7 @@ export class AppError extends Error {
     public readonly code: ErrorCode,
     message: string,
     public readonly details?: Record<string, string[]>,
+    public readonly extra?: ErrorExtra,
   ) {
     super(message);
     this.name = "AppError";

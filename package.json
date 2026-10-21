@@ -23,6 +23,7 @@
     "db:migrate:test": "pnpm --filter @prosolution/db migrate:test",
     "db:studio": "pnpm --filter @prosolution/db studio",
     "seed:admin": "pnpm --filter @prosolution/db seed:admin",
+    "db:seed": "pnpm --filter @prosolution/db seed:config",
     "secrets:generate": "node scripts/generate-secrets.mjs",
     "db:check-drift": "pnpm --filter @prosolution/db check-drift"
   }

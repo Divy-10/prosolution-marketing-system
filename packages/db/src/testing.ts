@@ -50,13 +50,19 @@ export async function resetTestDatabase(url: string): Promise<void> {
   }
 }
 
-/** Empties all application tables between tests (TRUNCATE bypasses the audit-log trigger). */
+/** Empties every application table between tests (TRUNCATE bypasses the audit-log trigger). */
 export async function truncateAll(url: string): Promise<void> {
   assertTestDatabaseUrl(url);
   const client = new pg.Client({ connectionString: url });
   await client.connect();
   try {
-    await client.query('TRUNCATE TABLE "AuditLog", "Session", "User" RESTART IDENTITY CASCADE;');
+    const { rows } = await client.query<{ tablename: string }>(
+      "SELECT tablename FROM pg_tables WHERE schemaname = 'public' AND tablename <> '_prisma_migrations'",
+    );
+    if (rows.length) {
+      const list = rows.map((r) => `"${r.tablename.replace(/"/g, '""')}"`).join(", ");
+      await client.query(`TRUNCATE TABLE ${list} RESTART IDENTITY CASCADE;`);
+    }
   } finally {
     await client.end();
   }

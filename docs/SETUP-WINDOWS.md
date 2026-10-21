@@ -66,6 +66,14 @@ pnpm db:check-drift
 - `db:migrate` applies the migrations in `packages/db/prisma/migrations`. The first run downloads Prisma's migration engine for Windows.
 - `db:check-drift` compares the live database with `schema.prisma`. **It should report no differences and exit without error.** If it lists differences, send me the output before going further.
 
+## 5b. Load the starting configuration
+
+```powershell
+pnpm db:seed
+```
+
+This loads ProSolution's company profile, 11 services, 16 industries and Surat's 12 areas. It's safe to run again: it only adds what is missing and never overwrites your edits. It creates no leads.
+
 ## 6. Create your admin account
 
 ```powershell
@@ -80,7 +88,7 @@ It asks for your email, name and a password of at least 12 characters (the passw
 pnpm check
 ```
 
-This runs type checks, all automated tests (against `prosolution_test`, never your main database), the production build, and a scan that fails if a server secret ends up in the browser bundle. The expected result is 74 passing tests and "Secret check passed".
+This runs type checks, all automated tests (against `prosolution_test`, never your main database), the production build, and a scan that fails if a server secret ends up in the browser bundle. The expected result (Phase 2) is 158 passing tests (42 shared, 25 web, 91 API) and "Secret check passed".
 
 ## 8. Run the app
 

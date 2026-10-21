@@ -61,13 +61,7 @@ export const NAV: NavGroup[] = [
         phase: 3,
         summary: "Target an industry and area, e.g. cafes in Vesu and Adajan, with a daily lead target, tone and services.",
       },
-      {
-        path: "/leads",
-        label: "Leads",
-        permission: "leads:read",
-        phase: 3,
-        summary: "Every business in one place, with duplicate protection, status, owner and full history.",
-      },
+      { path: "/leads", label: "Leads", permission: "leads:read" },
       {
         path: "/analytics",
         label: "Analytics",
@@ -80,13 +74,9 @@ export const NAV: NavGroup[] = [
   {
     label: "Setup",
     items: [
-      {
-        path: "/services",
-        label: "Services",
-        permission: "knowledge:manage",
-        phase: 3,
-        summary: "ProSolution's service knowledge base: what Claude may recommend. Prices stay editable and need approval.",
-      },
+      { path: "/service-profile", label: "Service profile", permission: "settings:read" },
+      { path: "/services", label: "Services", permission: "settings:read" },
+      { path: "/target-market", label: "Target market", permission: "settings:read" },
       {
         path: "/ai-settings",
         label: "AI configuration",
@@ -102,6 +92,7 @@ export const NAV: NavGroup[] = [
         summary: "Connect @_pro.solutions_ through Meta's official login. Shows granted permissions and token health.",
       },
       { path: "/users", label: "Users", permission: "users:manage" },
+      { path: "/data-retention", label: "Data retention", permission: "retention:manage" },
       { path: "/audit-log", label: "Audit log", permission: "audit:read" },
     ],
   },

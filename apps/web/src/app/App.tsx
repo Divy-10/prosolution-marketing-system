@@ -13,6 +13,12 @@ import { UsersPage } from "../pages/UsersPage.tsx";
 import { AuditLogPage } from "../pages/AuditLogPage.tsx";
 import { AccountPage } from "../pages/AccountPage.tsx";
 import { ComingSoonPage, NotFoundPage } from "../pages/ComingSoonPage.tsx";
+import { ServiceProfilePage } from "../pages/ServiceProfilePage.tsx";
+import { ServicesPage } from "../pages/ServicesPage.tsx";
+import { TargetMarketPage } from "../pages/TargetMarketPage.tsx";
+import { LeadsPage } from "../pages/LeadsPage.tsx";
+import { LeadDetailPage } from "../pages/LeadDetailPage.tsx";
+import { DataRetentionPage } from "../pages/DataRetentionPage.tsx";
 
 export function createQueryClient() {
   return new QueryClient({
@@ -60,6 +66,54 @@ export function AppRoutes() {
           element={
             <RequirePermission permission="audit:read">
               <AuditLogPage />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path="service-profile"
+          element={
+            <RequirePermission permission="settings:read">
+              <ServiceProfilePage />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path="services"
+          element={
+            <RequirePermission permission="settings:read">
+              <ServicesPage />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path="target-market"
+          element={
+            <RequirePermission permission="settings:read">
+              <TargetMarketPage />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path="leads"
+          element={
+            <RequirePermission permission="leads:read">
+              <LeadsPage />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path="leads/:id"
+          element={
+            <RequirePermission permission="leads:read">
+              <LeadDetailPage />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path="data-retention"
+          element={
+            <RequirePermission permission="retention:manage">
+              <DataRetentionPage />
             </RequirePermission>
           }
         />
